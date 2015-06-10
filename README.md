@@ -1,8 +1,8 @@
 # Vera-Plugin-VirtualAlarmPanel
 
-Plugin for GetVera Home Controller (VeraEdge, Vera3, VeraLite) with UI7 (http://getvera.com/)
+Plugin for [getVera](http://getvera.com/) Home Controller (VeraEdge, Vera3, VeraLite).
 
-Only compatible with UI7
+**Only compatible with UI7**
 
 This plugin allows to manage a virtual panel of alarms.
 It's designed to present, add, sort easily the alarms and mainly to handle acknowledgement for active alarms.
