@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<implementation>
+	<files>L_VirtualAlarmPanel1.lua</files>
+	<startup>startup</startup>
+	<actionList>
+		<!-- Panel status -->
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>GetStatus</name>
+			<run>
+				luup.variable_get("urn:upnp-org:serviceId:VirtualAlarmPanel1", "Status", lul_device)
+			</run>
+		</action>
+		<!-- Alarm status -->
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>SetAlarmStatus</name>
+			<run>
+				setAlarmStatus(lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>GetAlarmStatus</name>
+			<run>
+				getAlarmStatus(lul_device, lul_settings)
+			</run>
+		</action>
+		<!-- Alarm acknowledge -->
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>SetAlarmAcknowledge</name>
+			<run>
+				setAlarmAcknowledge(lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>GetAlarmAcknowledge</name>
+			<run>
+				getAlarmAcknowledge(lul_device, lul_settings)
+			</run>
+		</action>
+		<!-- Alarm -->
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>AddAlarm</name>
+			<run>
+				addAlarm(lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>RemoveAlarm</name>
+			<run>
+				removeAlarm(lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>SetAlarmName</name>
+			<run>
+				setAlarmName(lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>SetAlarmPos</name>
+			<run>
+				setAlarmPos(lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>GetAlarmName</name>
+			<run>
+				getAlarmName(lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>GetAlarmId</name>
+			<run>
+				getAlarmId(lul_device, lul_settings)
+			</run>
+		</action>
+		<!-- Options -->
+		<action>
+			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
+			<name>SetOptions</name>
+			<run>
+				setOptions(lul_device, lul_settings)
+			</run>
+		</action>
+	</actionList>
+</implementation>

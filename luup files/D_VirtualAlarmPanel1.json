@@ -1,0 +1,129 @@
+{
+	"default_icon": "http://vosmont.github.io/icons/virtual_alarm_panel.png",
+	"state_icons": [
+		{
+			"img": "http://vosmont.github.io/icons/virtual_alarm_panel_off.png",
+			"conditions": [
+				{
+					"service": "urn:upnp-org:serviceId:VirtualAlarmPanel1",
+					"variable": "Status",
+					"operator": "==",
+					"value": 0
+				}
+			]
+		},
+		{
+			"img": "http://vosmont.github.io/icons/virtual_alarm_panel_on.png",
+			"conditions": [
+				{
+					"service": "urn:upnp-org:serviceId:VirtualAlarmPanel1",
+					"variable": "Status",
+					"operator": "==",
+					"value": 1
+				}
+			]
+		},
+		{
+			"img": "http://vosmont.github.io/icons/virtual_alarm_panel_on_acknoledge.png",
+			"conditions": [
+				{
+					"service": "urn:upnp-org:serviceId:VirtualAlarmPanel1",
+					"variable": "Status",
+					"operator": "==",
+					"value": 2
+				}
+			]
+		}
+	],
+	"inScene": "1",
+	"doc_url":{
+		"doc_forced_url":{
+			"text":"http://forum.micasaverde.com/"
+		}
+	},
+	"Tabs": [
+		{
+			"Label": {
+				"lang_tag": "ui7_tabname_control",
+				"text": "Control"
+			},
+			"Position": 0,
+			"TabType": "flash",
+			"TopNavigationTab": 1,
+			"SceneGroup": [
+				{
+					"id": 1
+				}
+			],
+			"ControlGroup": [
+				{
+					"id": 1,
+					"scenegroup": 1
+				}
+			],
+			"Control": [
+				{
+					"ControlGroup": 1,
+					"ControlType": "variable",
+					"text_align": "left",
+					"Display": {
+						"Service": "urn:upnp-org:serviceId:VirtualAlarmPanel1",
+						"Variable": "AlarmPanel",
+						"Top": 0,
+						"Left": 0,
+						"Width": 300,
+						"Height": 80
+					}
+				}
+			]
+		},
+		{
+			"Label": {
+				"text": "Alarms"
+			},
+			"Position": 1,
+			"TabType": "javascript",
+			"TopNavigationTab": 1,
+			"ScriptName": "J_VirtualAlarmPanel1.js",
+			"Function": "VirtualAlarmPanel.showAlarms"
+		},
+		{
+			"Label": {
+				"lang_tag": "advanced",
+				"text": "Advanced"
+			},
+			"Position": 2,
+			"TabType": "javascript",
+			"ScriptName": "shared.js",
+			"Function": "advanced_device"
+		}
+	],
+	"eventList2":[
+		{
+			"id": 1,
+			"label": {
+				"lang_tag": "thermostat_heat_point_goes_over",
+				"text": "Whenever _DEVICE_NAME_ has an alarm active"
+			},
+			"serviceId": "urn:upnp-org:serviceId:VirtualAlarmPanel1",
+			"argumentList": [
+				{
+					"id": 1,
+					"name": "LastActiveAlarmName",
+					"comparisson": "=",
+					"prefix": {
+						"lang_tag": "alarm_name",
+						"text": "Alarm name"
+					},
+					"suffix": {},
+					"HumanFriendlyText": {
+						"lang_tag": "hft_thermostat_heatpoint_goes_over",
+						"text": "_DEVICE_NAME_: Alarm '_ARGUMENT_VALUE_' is activated"
+					}
+				}
+			]
+		}
+	],
+	"DeviceType":"urn:schemas-upnp-org:device:VirtualAlarmPanel:1"
+}
+
