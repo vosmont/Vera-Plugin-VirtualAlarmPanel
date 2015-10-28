@@ -3,7 +3,7 @@ local json = require("dkjson")
 
 -- Plugin constants
 local SID = {
-	VIRTUAL_ALARM_PANEL = "urn:upnp-org:serviceId:VirtualAlarmPanel1"
+	VirtualAlarmPanel = "urn:upnp-org:serviceId:VirtualAlarmPanel1"
 }
 
 -------------------------------------------
@@ -11,7 +11,7 @@ local SID = {
 -------------------------------------------
 
 local PLUGIN_NAME = "VirtualAlarmPanel"
-local PLUGIN_VERSION = "0.1"
+local PLUGIN_VERSION = "0.11"
 local DEBUG_MODE = false
 local settings = {}
 
@@ -53,7 +53,7 @@ end
 
 -- Show message on UI
 local function showMessageOnUI (lul_device, message)
-	luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "AlarmPanel", tostring(message), lul_device)
+	luup.variable_set(SID.VirtualAlarmPanel, "AlarmPanel", tostring(message), lul_device)
 end
 
 -- Change debug level log
@@ -65,11 +65,11 @@ function onDebugValueIsUpdated (lul_device, lul_service, lul_variable, lul_value
 		log("onDebugValueIsUpdated", "Disable debug mode")
 		DEBUG_MODE = false
 	end
+	updatePanel()
 end
 
 -- Get alarm or create it if wanted
 local function getAlarm (lul_settings, createIfNotExists)
-	
 	debug("getAlarm", "lul_settings #" .. json.encode(lul_settings))
 	lul_settings = lul_settings or {}
 	local alarm, index = nil, 0
@@ -126,7 +126,7 @@ local function getAlarm (lul_settings, createIfNotExists)
 	end
 
 	if (alarm == nil) then
-		error("getAlarmId", "Can not retrieve alarm " .. json.encode(lul_settings))
+		error("getAlarm", "Can not retrieve alarm " .. json.encode(lul_settings))
 	end
 
 	return alarm, index
@@ -143,7 +143,7 @@ local function updatePanel ()
 		alarmPanel = alarmPanel .. '<div style="color:gray;font-size:.7em;text-align:left;">Debug enabled</div>'
 	end
 
-	local alarmPanel = alarmPanel .. '<ul class="AlarmPanel" style="text-align: justify; text-indent: 0px; display: inline;">'
+	local activeAlarmPanel = ""
 	for _, alarm in pairs(settings.alarms) do
 		if (alarm.name ~= "") then
 			style = "border: gray 1px solid; padding:2px; margin:2px; display:inline-block;"
@@ -161,14 +161,19 @@ local function updatePanel ()
 					status = "1"
 					style = style .. " color:red;"
 				end
-				alarmPanel = alarmPanel .. '<li style="' .. style .. '">' .. tostring(alarm.name) .. '</li>'
+				activeAlarmPanel = activeAlarmPanel .. '<li style="' .. style .. '">' .. tostring(alarm.name) .. '</li>'
 			end
 		end
 	end
-	alarmPanel = alarmPanel .. '</ul>'
 
-	luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "AlarmPanel", alarmPanel, lul_device)
-	luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "Status", status, lul_device)
+	if (activeAlarmPanel ~= "") then
+		alarmPanel = alarmPanel .. '<ul class="AlarmPanel" style="text-align: justify; text-indent: 0px; display: inline;">' .. activeAlarmPanel .. '</ul>'
+	else
+		alarmPanel = alarmPanel .. '<div style="color:gray;font-size:.7em;text-align:left;">No active alarm</div>'
+	end
+
+	luup.variable_set(SID.VirtualAlarmPanel, "AlarmPanel", alarmPanel, lul_device)
+	luup.variable_set(SID.VirtualAlarmPanel, "Status", status, lul_device)
 end
 
 -------------------------------------------
@@ -183,7 +188,7 @@ function addAlarm (lul_device, lul_settings)
 		return false
 	end
 	debug("addAlarm", "Add alarm #" .. tostring(alarm.id) .. "'" .. tostring(alarm.name) .. "'")
-	luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "Alarms", json.encode(settings.alarms), lul_device)
+	luup.variable_set(SID.VirtualAlarmPanel, "Alarms", json.encode(settings.alarms), lul_device)
 	updatePanel()
 	return true
 end
@@ -197,7 +202,7 @@ function removeAlarm (lul_device, lul_settings)
 	end
 	debug("removeAlarm", "Remove alarm #" .. tostring(alarm.id) .. "'" .. tostring(alarm.name) .. "'")
 	table.remove(settings.alarms, index)
-	luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "Alarms", json.encode(settings.alarms), lul_device)
+	luup.variable_set(SID.VirtualAlarmPanel, "Alarms", json.encode(settings.alarms), lul_device)
 	updatePanel()
 	return true
 end
@@ -209,7 +214,7 @@ function setAlarmName (lul_device, lul_settings)
 	debug("setAlarmName", "Alarm #" .. tostring(alarm.id) .. "'" .. tostring(alarm.name) .. "' - Former name:" .. tostring(alarm.name) .. " - New name: " .. tostring(lul_settings.newAlarmName))
 	if (alarm.name ~= lul_settings.newAlarmName) then
 		alarm.name = lul_settings.newAlarmName
-		luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "Alarms", json.encode(settings.alarms), lul_device)
+		luup.variable_set(SID.VirtualAlarmPanel, "Alarms", json.encode(settings.alarms), lul_device)
 		updatePanel()
 	end
 	return true
@@ -220,11 +225,11 @@ function getAlarmName (lul_device, lul_settings)
 	lul_settings = lul_settings or {}
 	local alarm = getAlarm(lul_settings)
 	if (alarm == nil) then
-		luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastResult", "", lul_device)
+		luup.variable_set(SID.VirtualAlarmPanel, "LastResult", "", lul_device)
 		return false
 	end
 	debug("getAlarmName", "Alarm #" .. tostring(alarm.id) .. "'" .. tostring(alarm.name) .. "' - Name:" .. tostring(alarm.name))
-	luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastResult", tostring(alarm.name), lul_device)
+	luup.variable_set(SID.VirtualAlarmPanel, "LastResult", tostring(alarm.name), lul_device)
 	return tostring(alarm.name)
 end
 
@@ -233,11 +238,11 @@ function getAlarmId (lul_device, lul_settings)
 	lul_settings = lul_settings or {}
 	local alarm = getAlarm(lul_settings)
 	if (alarm == nil) then
-		luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastResult", "", lul_device)
+		luup.variable_set(SID.VirtualAlarmPanel, "LastResult", "", lul_device)
 		return false
 	end
 	debug("getAlarmId", "Alarm #" .. tostring(alarm.id) .. "'" .. tostring(alarm.name) .. "' - Id:" .. tostring(alarm.id))
-	luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastResult", tostring(alarm.id), lul_device)
+	luup.variable_set(SID.VirtualAlarmPanel, "LastResult", tostring(alarm.id), lul_device)
 	return tostring(alarm.id)
 end
 
@@ -247,11 +252,11 @@ function setAlarmPos (lul_device, lul_settings)
 	lul_settings.newAlarmPos = tonumber(lul_settings.newAlarmPos) or 0
 	local alarm, formerAlarmPos = getAlarm(lul_settings)
 	if (alarm == nil) then
-		luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastResult", "Alarm not found", lul_device)
+		luup.variable_set(SID.VirtualAlarmPanel, "LastResult", "Alarm not found", lul_device)
 		return false
 	end
 	if ((lul_settings.newAlarmPos == 0) or (lul_settings.newAlarmPos > table.getn(settings.alarms))) then
-		luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastResult", "Invalid position", lul_device)
+		luup.variable_set(SID.VirtualAlarmPanel, "LastResult", "Invalid position", lul_device)
 		return false
 	end
 	-- Get former position
@@ -266,7 +271,7 @@ function setAlarmPos (lul_device, lul_settings)
 	if (lul_settings.newAlarmPos ~= formerAlarmPos) then
 		table.remove(settings.alarms, formerAlarmPos)
 		table.insert(settings.alarms, lul_settings.newAlarmPos, alarm)
-		luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "Alarms", json.encode(settings.alarms), lul_device)
+		luup.variable_set(SID.VirtualAlarmPanel, "Alarms", json.encode(settings.alarms), lul_device)
 		updatePanel()
 	end
 	return true
@@ -288,8 +293,8 @@ function setAlarmStatus (lul_device, lul_settings)
 		alarm.lastUpdate = os.time()
 		if (alarm.status == "1") then
 			debug("setAlarmStatus", "Alarm #" .. tostring(alarm.id) .. " is now active")
-			luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastActiveAlarmName", alarm.name, lul_device)
-			luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastActiveAlarmId", alarm.id, lul_device)
+			luup.variable_set(SID.VirtualAlarmPanel, "LastActiveAlarmName", alarm.name, lul_device)
+			luup.variable_set(SID.VirtualAlarmPanel, "LastActiveAlarmId", alarm.id, lul_device)
 		else
 			if (alarm.acknowledge == "1") then
 				debug("setAlarmStatus", "Alarm #" .. tostring(alarm.id) .. " is now inactive but was acknowledged - Reset acknowledge")
@@ -298,7 +303,7 @@ function setAlarmStatus (lul_device, lul_settings)
 				debug("setAlarmStatus", "Alarm #" .. tostring(alarm.id) .. " is now inactive")
 			end
 		end
-		luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "Alarms", json.encode(settings.alarms), lul_device)
+		luup.variable_set(SID.VirtualAlarmPanel, "Alarms", json.encode(settings.alarms), lul_device)
 		updatePanel()
 	end
 	return true
@@ -308,12 +313,12 @@ end
 function getAlarmStatus (lul_device, lul_settings)
 	local alarm = getAlarm(lul_settings)
 	if (alarm == nil) then
-		luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastResult", "", lul_device)
+		luup.variable_set(SID.VirtualAlarmPanel, "LastResult", "", lul_device)
 		return false
 	end
 	debug("getAlarmStatus", "Alarm #" .. tostring(alarm.id) .. "'" .. tostring(alarm.name) .. "' - Status:" .. tostring(alarm.status))
-	luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastResult", tostring(alarm.status), lul_device)
-	luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastResult2", tostring(alarm.lastUpdate), lul_device)
+	luup.variable_set(SID.VirtualAlarmPanel, "LastResult", tostring(alarm.status), lul_device)
+	luup.variable_set(SID.VirtualAlarmPanel, "LastResult2", tostring(alarm.lastUpdate), lul_device)
 	return {
 		retStatus = tostring(alarm.status),
 		retLastUpdate = tostring(alarm.lastUpdate)
@@ -334,7 +339,7 @@ function setAlarmAcknowledge (lul_device, lul_settings)
 	debug("setAlarmAcknowledge", "Alarm #" .. tostring(alarm.id) .. "'" .. tostring(alarm.name) .. "' - Former acknowledge:" .. tostring(alarm.acknowledge) .. " - New acknowledge: " .. tostring(lul_settings.newAcknowledge))
 	if (alarm.acknowledge ~= tostring(lul_settings.newAcknowledge)) then
 		alarm.acknowledge = tostring(lul_settings.newAcknowledge)
-		luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "Alarms", json.encode(settings.alarms), lul_device)
+		luup.variable_set(SID.VirtualAlarmPanel, "Alarms", json.encode(settings.alarms), lul_device)
 		updatePanel()
 	end
 	return true
@@ -344,13 +349,14 @@ end
 function getAlarmAcknowledge (lul_device, lul_settings)
 	local alarm = getAlarm(lul_settings)
 	if (alarm == nil) then
-		luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastResult", "", lul_device)
+		luup.variable_set(SID.VirtualAlarmPanel, "LastResult", "", lul_device)
 		return false
 	end
 	debug("getAlarmAcknowledge", "Alarm #" .. tostring(alarm.id) .. "'" .. tostring(alarm.name) .. "' - Acknowledge:" .. tostring(alarm.acknowledge))
-	luup.variable_set(SID.VIRTUAL_ALARM_PANEL, "LastResult", tostring(alarm.acknowledge), lul_device)
+	luup.variable_set(SID.VirtualAlarmPanel, "LastResult", tostring(alarm.acknowledge), lul_device)
 	return tostring(alarm.acknowledge)
 end
+
 
 -------------------------------------------
 -- Startup
@@ -368,14 +374,14 @@ function initPluginInstance (lul_device)
 	}
 
 	-- Get plugin params for this device
-	getVariableOrInit(lul_device, SID.VIRTUAL_ALARM_PANEL, "Status", "0")
-	getVariableOrInit(lul_device, SID.VIRTUAL_ALARM_PANEL, "AlarmPanel", "")
-	getVariableOrInit(lul_device, SID.VIRTUAL_ALARM_PANEL, "LastActiveAlarmName", "")
-	getVariableOrInit(lul_device, SID.VIRTUAL_ALARM_PANEL, "LastActiveAlarmId", "")
-	getVariableOrInit(lul_device, SID.VIRTUAL_ALARM_PANEL, "LastResult", "")
+	getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Status", "0")
+	getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "AlarmPanel", "")
+	getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastActiveAlarmName", "")
+	getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastActiveAlarmId", "")
+	getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastResult", "")
 
 	-- Alarms
-	local jsonAlarms = getVariableOrInit(lul_device, SID.VIRTUAL_ALARM_PANEL, "Alarms", "[]")
+	local jsonAlarms = getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Alarms", "[]")
 	local decodeSuccess, alarms = pcall(json.decode, jsonAlarms)
 	if ((not decodeSuccess) or (type(alarms) ~= "table")) then
 		showMessageOnUI(lul_device, "Alarms decode error: " .. tostring(alarms))
@@ -384,8 +390,8 @@ function initPluginInstance (lul_device)
 		settings.alarms = alarms
 	end
 
-	--getVariableOrInit(lul_device, SID.VIRTUAL_ALARM_PANEL, "Options", "")
-	DEBUG_MODE = (getVariableOrInit(lul_device, SID.VIRTUAL_ALARM_PANEL, "Debug", "0") == "1")
+	--getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Options", "")
+	DEBUG_MODE = (getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Debug", "0") == "1")
 
 	updatePanel()
 
@@ -399,8 +405,8 @@ function startup (lul_device)
 	initPluginInstance(lul_device)
 
 	-- Watch setting changes
-	--luup.variable_watch("initPluginInstance", SID.VIRTUAL_ALARM_PANEL, "Options", lul_device)
-	luup.variable_watch("onDebugValueIsUpdated", SID.VIRTUAL_ALARM_PANEL, "Debug", lul_device)
+	--luup.variable_watch("initPluginInstance", SID.VirtualAlarmPanel, "Options", lul_device)
+	luup.variable_watch("onDebugValueIsUpdated", SID.VirtualAlarmPanel, "Debug", lul_device)
 
 	luup.set_failure(0, lul_device)
 

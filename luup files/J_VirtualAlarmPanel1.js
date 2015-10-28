@@ -84,6 +84,22 @@ var VirtualAlarmPanel = (function (api, $) {
 			}\
 		")
 		.appendTo("head");
+	// ALTUI compatibility
+	var myInterface = window.myInterface;
+	if (typeof myInterface === 'undefined') {
+		myInterface = {
+			showModalLoading: function () {
+				if ($.isFunction(show_loading)) {
+					show_loading();
+				}
+			},
+			hideModalLoading: function () {
+				if ($.isFunction(hide_loading)) {
+					hide_loading();
+				}
+			}
+		};
+	}
 
 	/**
 	 * Get alarm list
@@ -132,8 +148,6 @@ var VirtualAlarmPanel = (function (api, $) {
 					+			'</div>'
 					+		'</div>'
 					+		'<div class="alarmButtons">'
-					//+			'<div class="removeButton"> </div>'
-					//+			'<button class="SurveillanceStationRemote-enable ui-widget-content ui-corner-all' + (alarm.status == "1" ? ' active' : '') + '">ON</button>'
 					+			'<div class="acknowledgeButton' + (alarm.acknowledge == "1" ? ' active' : '') + '" title="' + (alarm.acknowledge == "1" ? 'Remove acknowledge' : 'Acknowledge alarm') + '"> </div>'
 					+		'</div>'
 					+	'</div>'
@@ -166,6 +180,7 @@ var VirtualAlarmPanel = (function (api, $) {
 							myInterface.showModalLoading();
 							api.performActionOnDevice(deviceId, VIRTUAL_ALARM_PANEL_SID, "RemoveAlarm", {
 								actionArguments: {
+									output_format: "json",
 									alarmId: alarmId
 								},
 								onSuccess: function () {
@@ -184,6 +199,7 @@ var VirtualAlarmPanel = (function (api, $) {
 						myInterface.showModalLoading();
 						api.performActionOnDevice(deviceId, VIRTUAL_ALARM_PANEL_SID, "SetAlarmPos", {
 							actionArguments: {
+								output_format: "json",
 								alarmId: alarmId,
 								newAlarmPos: alarmPos
 							},
@@ -196,39 +212,8 @@ var VirtualAlarmPanel = (function (api, $) {
 							}
 						});
 					}
-				}/*,
-				stop: function ( event, ui ) {
-					var $alarm = ui.item;
-					var alarmId = $alarm.data("alarm_id");
-					var alarmPos = $("#VirtualAlarmPanel .alarm").index( $alarm ) + 1;
-					myInterface.showModalLoading();
-					api.performActionOnDevice(deviceId, VIRTUAL_ALARM_PANEL_SID, "SetAlarmPos", {
-						actionArguments: {
-							alarmId: alarmId,
-							newAlarmPos: alarmPos
-						},
-						onSuccess: function () {
-							myInterface.hideModalLoading();
-						},
-						onFailure: function () {
-							myInterface.hideModalLoading();
-							Utils.logDebug("[VirtualAlarmPanel.setAlarmAcknowledge] KO");
-						}
-					});
-				}*/
-			});
-
-			// Remove button
-			/*
-			$("#VirtualAlarmPanel_Alarms .removeButton").click(function () {
-				var $alarm = $(this).parent().parent();
-				var alarmId = $alarm.data("alarm_id");
-				var alarmName = $alarm.children(".alarmName").text();
-				if (confirm('Are you sure you want to remove alarm "' + alarmName + '" ?')) {
-					$alarm.remove();
 				}
 			});
-			*/
 
 			// Acknowledge button
 			$("#VirtualAlarmPanel_Alarms .acknowledgeButton").click(function () {
@@ -253,6 +238,7 @@ var VirtualAlarmPanel = (function (api, $) {
 				myInterface.showModalLoading();
 				api.performActionOnDevice(deviceId, VIRTUAL_ALARM_PANEL_SID, "SetAlarmAcknowledge", {
 					actionArguments: {
+						output_format: "json",
 						alarmId: alarmId,
 						newAcknowledge: acknowledge
 					},
@@ -275,6 +261,7 @@ var VirtualAlarmPanel = (function (api, $) {
 					myInterface.showModalLoading();
 					api.performActionOnDevice(deviceId, VIRTUAL_ALARM_PANEL_SID, "SetAlarmName", {
 						actionArguments: {
+							output_format: "json",
 							alarmId: alarmId,
 							newAlarmName: newAlarmName
 						},
@@ -334,7 +321,7 @@ var VirtualAlarmPanel = (function (api, $) {
 				myInterface.showModalLoading();
 				api.performActionOnDevice(deviceId, VIRTUAL_ALARM_PANEL_SID, "AddAlarm", {
 					actionArguments: {
-						//alarmId: null,
+						output_format: "json",
 						alarmName: "New alarm"
 					},
 					onSuccess: function () {
