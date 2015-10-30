@@ -1,9 +1,16 @@
 -- Imports
 local json = require("dkjson")
 
--- Plugin constants
+-- Devices ids
+local DID = {
+	VirtualAlarmPanel = "urn:schemas-upnp-org:device:VirtualAlarmPanel:1",
+	ALTUI = "urn:schemas-upnp-org:device:altui:1"
+}
+
+-- Services ids
 local SID = {
-	VirtualAlarmPanel = "urn:upnp-org:serviceId:VirtualAlarmPanel1"
+	VirtualAlarmPanel = "urn:upnp-org:serviceId:VirtualAlarmPanel1",
+	ALTUI = "urn:upnp-org:serviceId:altui1"
 }
 
 -------------------------------------------
@@ -66,6 +73,34 @@ function onDebugValueIsUpdated (lul_device, lul_service, lul_variable, lul_value
 		DEBUG_MODE = false
 	end
 	updatePanel()
+end
+
+-- Register with ALTUI once it is ready
+function registerWithALTUI ()
+	for deviceId, device in pairs(luup.devices) do
+		if (device.device_type == DID.ALTUI) then
+			if luup.is_ready(deviceId) then
+				debug("registerWithALTUI", "Register with ALTUI main device #" .. tostring(deviceId))
+				luup.call_action(
+					SID.ALTUI,
+					"RegisterPlugin",
+					{
+						newDeviceType = DID.VirtualAlarmPanel,
+						newScriptFile = "J_ALTUI_VirtualAlarmPanel1.js",
+						newDeviceDrawFunc = "ALTUI_VirtualAlarmPanel.drawDevice",
+						newStyleFunc = "",
+						newDeviceIconFunc = "",
+						newControlPanelFunc = ""
+					},
+					deviceId
+				)
+			else
+				debug("registerWithALTUI", "ALTUI main device #" .. tostring(deviceId) .. " is not yet ready, retry to register in 10 seconds...")
+				luup.call_delay("registerWithALTUI", 10)
+			end
+			break
+		end
+	end
 end
 
 -- Get alarm or create it if wanted
@@ -407,6 +442,9 @@ function startup (lul_device)
 	-- Watch setting changes
 	--luup.variable_watch("initPluginInstance", SID.VirtualAlarmPanel, "Options", lul_device)
 	luup.variable_watch("onDebugValueIsUpdated", SID.VirtualAlarmPanel, "Debug", lul_device)
+
+	-- Register with ALTUI
+	luup.call_delay("registerWithALTUI", 10)
 
 	luup.set_failure(0, lul_device)
 
