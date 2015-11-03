@@ -1,7 +1,19 @@
 <?xml version="1.0"?>
 <implementation>
-	<files>L_VirtualAlarmPanel1.lua</files>
-	<startup>startup</startup>
+	<functions>
+		local VirtualAlarmPanel
+
+		function VirtualAlarmPanel_startup (lul_device)
+			luup.log("VirtualAlarmPanel startup")
+			VirtualAlarmPanel = require("L_VirtualAlarmPanel1")
+			if (VirtualAlarmPanel ~= nil) then
+				return VirtualAlarmPanel.startup(lul_device)
+			else
+				return false, "Can't load library"
+			end
+		end
+	</functions>
+	<startup>VirtualAlarmPanel_startup</startup>
 	<actionList>
 		<!-- Panel status -->
 		<action>
@@ -16,14 +28,14 @@
 			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
 			<name>SetAlarmStatus</name>
 			<run>
-				setAlarmStatus(lul_device, lul_settings)
+				if (VirtualAlarmPanel ~= nil) then VirtualAlarmPanel.setAlarmStatus(lul_device, lul_settings) end
 			</run>
 		</action>
 		<action>
 			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
 			<name>GetAlarmStatus</name>
 			<run>
-				getAlarmStatus(lul_device, lul_settings)
+				if (VirtualAlarmPanel ~= nil) then return VirtualAlarmPanel.getAlarmStatus(lul_device, lul_settings) end
 			</run>
 		</action>
 		<!-- Alarm acknowledge -->
@@ -31,14 +43,14 @@
 			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
 			<name>SetAlarmAcknowledge</name>
 			<run>
-				setAlarmAcknowledge(lul_device, lul_settings)
+				if (VirtualAlarmPanel ~= nil) then VirtualAlarmPanel.setAlarmAcknowledge(lul_device, lul_settings) end
 			</run>
 		</action>
 		<action>
 			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
 			<name>GetAlarmAcknowledge</name>
 			<run>
-				getAlarmAcknowledge(lul_device, lul_settings)
+				if (VirtualAlarmPanel ~= nil) then return VirtualAlarmPanel.getAlarmAcknowledge(lul_device, lul_settings) end
 			</run>
 		</action>
 		<!-- Alarm -->
@@ -46,42 +58,42 @@
 			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
 			<name>AddAlarm</name>
 			<run>
-				addAlarm(lul_device, lul_settings)
+				if (VirtualAlarmPanel ~= nil) then VirtualAlarmPanel.addAlarm(lul_device, lul_settings) end
 			</run>
 		</action>
 		<action>
 			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
 			<name>RemoveAlarm</name>
 			<run>
-				removeAlarm(lul_device, lul_settings)
+				if (VirtualAlarmPanel ~= nil) then VirtualAlarmPanel.removeAlarm(lul_device, lul_settings) end
 			</run>
 		</action>
 		<action>
 			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
 			<name>SetAlarmName</name>
 			<run>
-				setAlarmName(lul_device, lul_settings)
+				if (VirtualAlarmPanel ~= nil) then VirtualAlarmPanel.setAlarmName(lul_device, lul_settings) end
 			</run>
 		</action>
 		<action>
 			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
 			<name>SetAlarmPos</name>
 			<run>
-				setAlarmPos(lul_device, lul_settings)
+				if (VirtualAlarmPanel ~= nil) then VirtualAlarmPanel.setAlarmPos(lul_device, lul_settings) end
 			</run>
 		</action>
 		<action>
 			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
 			<name>GetAlarmName</name>
 			<run>
-				getAlarmName(lul_device, lul_settings)
+				if (VirtualAlarmPanel ~= nil) then return VirtualAlarmPanel.getAlarmName(lul_device, lul_settings) end
 			</run>
 		</action>
 		<action>
 			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
 			<name>GetAlarmId</name>
 			<run>
-				getAlarmId(lul_device, lul_settings)
+				if (VirtualAlarmPanel ~= nil) then return VirtualAlarmPanel.getAlarmId(lul_device, lul_settings) end
 			</run>
 		</action>
 		<!-- Options -->
@@ -89,7 +101,7 @@
 			<serviceId>urn:upnp-org:serviceId:VirtualAlarmPanel1</serviceId>
 			<name>SetOptions</name>
 			<run>
-				setOptions(lul_device, lul_settings)
+				if (VirtualAlarmPanel ~= nil) then VirtualAlarmPanel.setOptions(lul_device, lul_settings) end
 			</run>
 		</action>
 	</actionList>

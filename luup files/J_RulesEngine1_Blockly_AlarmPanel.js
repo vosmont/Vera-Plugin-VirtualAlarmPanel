@@ -16,15 +16,15 @@ Blockly.Blocks[ "alarm_panel" ] = {
 			function( device ) { return device.device_type === "urn:schemas-upnp-org:device:VirtualAlarmPanel:1"; },
 			function( devices ) {
 				for ( var i = 0; i < devices.length; i++ ) {
-					alarmPanels.push( [ devices[ i ].name, devices[i].id ] );
+					alarmPanels.push( [ devices[ i ].name, devices[i].id.toString() ] );
 				}
 			}
 		);
 		this.appendDummyInput()
 			.appendField( "Panel" )
 			.appendField(
-				new Blockly.FieldDropdown( alarmPanels, function ( newValue ) {
-					this.sourceBlock_.updateAlarm_( newValue.split( ";" )[ 0 ] );
+				new Blockly.FieldDropdown( alarmPanels, function ( newPanelId ) {
+					this.sourceBlock_.updateAlarm_( newPanelId );
 				} ),
 				"deviceId"
 			);
@@ -52,6 +52,9 @@ Blockly.Blocks[ "alarm_panel" ] = {
 
 		var device = MultiBox.getDeviceByID( 0, newPanelId );
 		if ( device == null ) {
+			return;
+		}
+		if ( device.states == null ) {
 			return;
 		}
 		for ( var i = 0; i < device.states.length; i++ ) {

@@ -8,6 +8,9 @@ _NAME = "RulesEngine_VirtualAlarmPanel"
 _DESCRIPTION = "Sauvegarde du statut de la règle dans un VirtualAlarmPanel et gestion d'un acquitement"
 _VERSION = "0.01"
 
+local RulesEngine = RulesEngine or L_RulesEngine1
+assert((type(RulesEngine) == "table"), "RulesEngine is not loaded")
+
 -- Services ids
 local SID = {
 	VirtualAlarmPanel = "urn:upnp-org:serviceId:VirtualAlarmPanel1"
