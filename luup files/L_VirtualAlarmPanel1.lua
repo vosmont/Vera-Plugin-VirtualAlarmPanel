@@ -20,7 +20,7 @@ local SID = {
 -------------------------------------------
 
 local PLUGIN_NAME = "VirtualAlarmPanel"
-local PLUGIN_VERSION = "0.12"
+local PLUGIN_VERSION = "1.00"
 local DEBUG_MODE = false
 local settings = {}
 
@@ -29,13 +29,25 @@ local settings = {}
 -------------------------------------------
 
 -- Get variable value and init if value is nil
-local function getVariableOrInit (lul_device, serviceId, variableName, defaultValue)
+local function _getVariableOrInit (lul_device, serviceId, variableName, defaultValue)
 	local value = luup.variable_get(serviceId, variableName, lul_device)
 	if (value == nil) then
 		luup.variable_set(serviceId, variableName, defaultValue, lul_device)
 		value = defaultValue
 	end
 	return value
+end
+
+local function _setVariable (lul_device, serviceId, variableName, newValue, forceUpdate)
+	local value = luup.variable_get(serviceId, variableName, lul_device)
+	if (newValue == value) then
+		if (forceUpdate) then
+			luup.variable_set(serviceId, variableName, "", lul_device)
+			luup.variable_set(serviceId, variableName, newValue, lul_device)
+		end
+	else
+		luup.variable_set(serviceId, variableName, newValue, lul_device)
+	end
 end
 
 local function log(methodName, text, level)
@@ -177,13 +189,13 @@ function updatePanel (lul_device)
 	local alarmPanel = ""
 
 	if (DEBUG_MODE) then
-		alarmPanel = alarmPanel .. '<div style="color:gray;font-size:.7em;text-align:left;">Debug enabled</div>'
+		alarmPanel = alarmPanel .. '<div style="color:gray;text-align:left;"><small>Debug enabled</small></div>'
 	end
 
 	local activeAlarmPanel = ""
 	for _, alarm in pairs(settings.alarms) do
 		if (alarm.name ~= "") then
-			style = "border: gray 1px solid; padding:2px; margin:2px; display:inline-block;"
+			style = "border: gray 1px solid; padding:1px; margin:1px; display:inline-block;"
 			if (alarm.status == "1") then
 				style = style .. " font-weight:bold;"
 				if (alarm.acknowledge == "1") then
@@ -204,9 +216,9 @@ function updatePanel (lul_device)
 	end
 
 	if (activeAlarmPanel ~= "") then
-		alarmPanel = alarmPanel .. '<ul class="AlarmPanel" style="text-align: justify; text-indent: 0px; display: inline;">' .. activeAlarmPanel .. '</ul>'
+		alarmPanel = alarmPanel .. '<small><ul class="AlarmPanel" style="text-align: justify; text-indent: 0px; display: inline;">' .. activeAlarmPanel .. '</ul></small>'
 	else
-		alarmPanel = alarmPanel .. '<div style="color:gray;font-size:.7em;text-align:left;">No active alarm</div>'
+		alarmPanel = alarmPanel .. '<div style="color:gray;text-align:left;"><small>No active alarm</small></div>'
 	end
 
 	luup.variable_set(SID.VirtualAlarmPanel, "AlarmPanel", alarmPanel, lul_device)
@@ -333,11 +345,12 @@ function setAlarmStatus (lul_device, lul_settings)
 			luup.variable_set(SID.VirtualAlarmPanel, "LastActiveAlarmName", alarm.name, lul_device)
 			luup.variable_set(SID.VirtualAlarmPanel, "LastActiveAlarmId", alarm.id, lul_device)
 		else
+			debug("setAlarmStatus", "Alarm #" .. tostring(alarm.id) .. " is now inactive")
+			luup.variable_set(SID.VirtualAlarmPanel, "LastInactiveAlarmName", alarm.name, lul_device)
+			luup.variable_set(SID.VirtualAlarmPanel, "LastInactiveAlarmId", alarm.id, lul_device)
 			if (alarm.acknowledge == "1") then
-				debug("setAlarmStatus", "Alarm #" .. tostring(alarm.id) .. " is now inactive but was acknowledged - Reset acknowledge")
+				debug("setAlarmStatus", "Alarm #" .. tostring(alarm.id) .. " is now inactive but was acknowledged - Reset acknowledgement")
 				alarm.acknowledge = "0"
-			else
-				debug("setAlarmStatus", "Alarm #" .. tostring(alarm.id) .. " is now inactive")
 			end
 		end
 		luup.variable_set(SID.VirtualAlarmPanel, "Alarms", json.encode(settings.alarms), lul_device)
@@ -377,6 +390,15 @@ function setAlarmAcknowledge (lul_device, lul_settings)
 	debug("setAlarmAcknowledge", "Alarm #" .. tostring(alarm.id) .. "'" .. tostring(alarm.name) .. "' - Former acknowledge:" .. tostring(alarm.acknowledge) .. " - New acknowledge: " .. tostring(lul_settings.newAcknowledge))
 	if (alarm.acknowledge ~= tostring(lul_settings.newAcknowledge)) then
 		alarm.acknowledge = tostring(lul_settings.newAcknowledge)
+		if (alarm.acknowledge == "1") then
+			debug("setAlarmAcknowledge", "Alarm #" .. tostring(alarm.id) .. " is now acknowledged")
+			_setVariable(lul_device, SID.VirtualAlarmPanel, "LastAcknowlegedAlarmName", alarm.name, true)
+			_setVariable(lul_device, SID.VirtualAlarmPanel, "LastAcknowlegedAlarmId", alarm.id, true)
+		else
+			debug("setAlarmStatus", "Alarm #" .. tostring(alarm.id) .. " is now not acknowledged")
+			_setVariable(lul_device, SID.VirtualAlarmPanel, "LastUnacknowlegedAlarmName", alarm.name, true)
+			_setVariable(lul_device, SID.VirtualAlarmPanel, "LastUnacknowlegedAlarmId", alarm.id, true)
+		end
 		luup.variable_set(SID.VirtualAlarmPanel, "Alarms", json.encode(settings.alarms), lul_device)
 		updatePanel(lul_device)
 	end
@@ -412,14 +434,20 @@ function initPluginInstance (lul_device)
 	}
 
 	-- Get plugin params for this device
-	getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Status", "0")
-	getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "AlarmPanel", "")
-	getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastActiveAlarmName", "")
-	getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastActiveAlarmId", "")
-	getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastResult", "")
+	_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Status", "0")
+	_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "AlarmPanel", "")
+	_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastActiveAlarmName", "")
+	_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastActiveAlarmId", "")
+	_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastInactiveAlarmName", "")
+	_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastInactiveAlarmId", "")
+	_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastAcknowlegedAlarmName", "")
+	_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastAcknowlegedAlarmId", "")
+	_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastUnacknowlegedAlarmName", "")
+	_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastUnacknowlegedAlarmId", "")
+	_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "LastResult", "")
 
 	-- Alarms
-	local jsonAlarms = getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Alarms", "[]")
+	local jsonAlarms = _getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Alarms", "[]")
 	local decodeSuccess, alarms = pcall(json.decode, jsonAlarms)
 	if ((not decodeSuccess) or (type(alarms) ~= "table")) then
 		showMessageOnUI(lul_device, "Alarms decode error: " .. tostring(alarms))
@@ -428,8 +456,8 @@ function initPluginInstance (lul_device)
 		settings.alarms = alarms
 	end
 
-	--getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Options", "")
-	DEBUG_MODE = (getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Debug", "0") == "1")
+	--_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Options", "")
+	DEBUG_MODE = (_getVariableOrInit(lul_device, SID.VirtualAlarmPanel, "Debug", "0") == "1")
 
 	updatePanel(lul_device)
 

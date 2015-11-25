@@ -114,20 +114,14 @@ var VirtualAlarmPanel = (function (api, $) {
 		return alarms;
 	}
 
-	function convertToDate(timestamp) {
-		if (typeof(timestamp) == "undefined") {
+	function _convertTimestampToLocaleString( timestamp ) {
+		if ( typeof( timestamp ) === "undefined" ) {
 			return "";
 		}
-		//console.log(timestamp);
-		var t = new Date(parseInt(timestamp, 10) * 1000);
-		//var t = new Date();
-		//t.setSeconds( timestamp );
-		
-		//var formatted = t.format("dd.mm.yyyy hh:MM:ss");
-		var formatted = t.toLocaleString();
-		//console.log(formatted);
-		return formatted;
-	}
+		var t = new Date( parseInt( timestamp, 10 ) * 1000 );
+		var localeString = t.toLocaleString();
+		return localeString;
+	};
 
 	/**
 	 * Draw and manage alarm list
@@ -144,7 +138,7 @@ var VirtualAlarmPanel = (function (api, $) {
 					+				alarm.name
 					+			'</div>'
 					+			'<div class="alarmLastUpdate">'
-					+				convertToDate(alarm.lastUpdate)
+					+				_convertTimestampToLocaleString(alarm.lastUpdate)
 					+			'</div>'
 					+		'</div>'
 					+		'<div class="alarmButtons">'

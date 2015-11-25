@@ -34,13 +34,9 @@ Blockly.Blocks[ "alarm_panel" ] = {
 			.appendField( "alarm" )
 			.appendField( new Blockly.FieldDropdown( [ [ "...", "" ] ] ), "alarmName" );
 
-		this.appendDummyInput()
-			.appendField( "is acknowledgeable" )
-			.appendField(new Blockly.FieldCheckbox( "TRUE" ), "isAcknowledgeable" );
-
 		this.setInputsInline( true );
 		this.setOutput( true, "Property" );
-		this.setTooltip( "Link an acknowledgeable alarm to this rule." );
+		this.setTooltip( "Link an alarm to this rule." );
 	},
 
 	updateAlarm_: function ( newPanelId ) {
