@@ -28,30 +28,30 @@ RulesEngine.addHook(
 	function (rule)
 		local alarmPanel = rule.properties["alarm_panel"]
 		if (type(alarmPanel) ~= "table") then
-			RulesEngine.log("Rule #" .. rule._id .. "(" .. rule.name .. ") has no alarmPanel param", "VirtualAlarmPanel.onRuleStatusInit", 3)
+			RulesEngine.log("Rule #" .. tostring(rule.id) .. "(" .. rule.name .. ") has no alarmPanel param", "VirtualAlarmPanel.onRuleStatusInit", 3)
 			return
 		end
 		alarmPanel.deviceId = tonumber(alarmPanel.deviceId)
 		if ((alarmPanel.deviceId == nil) or (luup.devices[alarmPanel.deviceId] == nil)) then
-			RulesEngine.addRuleError(rule._id, "VirtualAlarmPanel", "Alarm panel device is unkown")
+			RulesEngine.addRuleError(rule.id, "VirtualAlarmPanel", "Alarm panel device is unkown")
 			rule.properties["alarm_panel"] = nil
 			return
 		end
 
 		-- Add the rule to the index
-		indexRuleIdByAlarmName[tostring(alarmPanel.deviceId) .. "-" .. tostring(alarmPanel.alarmName)] = rule._id
+		indexRuleIdByAlarmName[tostring(alarmPanel.deviceId) .. "-" .. tostring(alarmPanel.alarmName)] = rule.id
 
 		-- Set intial statuses according to the linked rule
 		luup.call_action(
 			SID.VirtualAlarmPanel,
 			"SetAlarmStatus",
-			{ alarmName = alarmPanel.alarmName, newStatus = rule._status },
+			{ alarmName = alarmPanel.alarmName, newStatus = rule.context.status },
 			alarmPanel.deviceId
 		)
 		luup.call_action(
 			SID.VirtualAlarmPanel,
 			"SetAlarmAcknowledge",
-			{ alarmName = alarmPanel.alarmName, newAcknowledge = rule._isAcknowledged },
+			{ alarmName = alarmPanel.alarmName, newAcknowledge = rule.context.isAcknowledged },
 			alarmPanel.deviceId
 		)
 
@@ -72,7 +72,7 @@ RulesEngine.addHook(
 		if (type(alarmPanel) ~= "table") then
 			return
 		end
-		RulesEngine.log("Rule #" .. rule._id .. "(" .. rule.name .. ") - Panel #" .. tostring(alarmPanel.deviceId) .. " - Activates alarm '" .. tostring(alarmPanel.alarmName) .. "'", "VirtualAlarmPanel.onRuleIsActivated", 3)
+		RulesEngine.log("Rule #" .. tostring(rule.id) .. "(" .. rule.name .. ") - Panel #" .. tostring(alarmPanel.deviceId) .. " - Activate alarm '" .. tostring(alarmPanel.alarmName) .. "'", "VirtualAlarmPanel.onRuleIsActivated", 3)
 		luup.call_action(
 			SID.VirtualAlarmPanel,
 			"SetAlarmStatus",
@@ -90,7 +90,7 @@ RulesEngine.addHook(
 		if (type(alarmPanel) ~= "table") then
 			return
 		end
-		RulesEngine.log("Rule #" .. rule._id .. "(" .. rule.name .. ") - Panel #" .. tostring(alarmPanel.deviceId) .. " - Deactivates alarm '" .. tostring(alarmPanel.alarmName) .. "'", "VirtualAlarmPanel.onRuleIsDeactivated", 3)
+		RulesEngine.log("Rule #" .. tostring(rule.id) .. "(" .. rule.name .. ") - Panel #" .. tostring(alarmPanel.deviceId) .. " - Deactivate alarm '" .. tostring(alarmPanel.alarmName) .. "'", "VirtualAlarmPanel.onRuleIsDeactivated", 3)
 		luup.call_action(
 			SID.VirtualAlarmPanel,
 			"SetAlarmStatus",
@@ -108,7 +108,7 @@ RulesEngine.addHook(
 		if (type(alarmPanel) ~= "table") then
 			return
 		end
-		RulesEngine.log("Rule #" .. rule._id .. "(" .. rule.name .. ") - Panel #" .. tostring(alarmPanel.deviceId) .. " - Acknowledges alarm '" .. tostring(alarmPanel.alarmName) .. "'", "VirtualAlarmPanel.onRuleIsAcknowledged", 3)
+		RulesEngine.log("Rule #" .. tostring(rule.id) .. "(" .. rule.name .. ") - Panel #" .. tostring(alarmPanel.deviceId) .. " - Acknowledge alarm '" .. tostring(alarmPanel.alarmName) .. "'", "VirtualAlarmPanel.onRuleIsAcknowledged", 3)
 		indexJustAcknowledgedAlarms[tostring(alarmPanel.deviceId) .. "-" .. tostring(alarmPanel.alarmName)] = true
 		luup.call_action(
 			SID.VirtualAlarmPanel,
@@ -127,7 +127,7 @@ RulesEngine.addHook(
 		if (type(alarmPanel) ~= "table") then
 			return
 		end
-		RulesEngine.log("Rule #" .. rule._id .. "(" .. rule.name .. ") - Panel #" .. tostring(alarmPanel.deviceId) .. " - Unacknowledges alarm '" .. tostring(alarmPanel.alarmName) .. "'", "VirtualAlarmPanel.onRuleIsAcknowledged", 3)
+		RulesEngine.log("Rule #" .. tostring(rule.id) .. "(" .. rule.name .. ") - Panel #" .. tostring(alarmPanel.deviceId) .. " - Unacknowledge alarm '" .. tostring(alarmPanel.alarmName) .. "'", "VirtualAlarmPanel.onRuleIsAcknowledged", 3)
 		indexJustUnacknowledgedAlarms[tostring(alarmPanel.deviceId) .. "-" .. tostring(alarmPanel.alarmName)] = true
 		luup.call_action(
 			SID.VirtualAlarmPanel,

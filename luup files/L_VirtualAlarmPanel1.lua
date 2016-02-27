@@ -20,7 +20,7 @@ local SID = {
 -------------------------------------------
 
 local PLUGIN_NAME = "VirtualAlarmPanel"
-local PLUGIN_VERSION = "1.00"
+local PLUGIN_VERSION = "1.01"
 local DEBUG_MODE = false
 local settings = {}
 
