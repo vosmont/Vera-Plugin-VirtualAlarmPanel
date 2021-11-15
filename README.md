@@ -1,3 +1,6 @@
+**This plugin is no longer maintained**
+
+
 # Vera-Plugin-VirtualAlarmPanel
 
 Plugin for [getVera](http://getvera.com/) Home Controller (VeraEdge, Vera3, VeraLite).
